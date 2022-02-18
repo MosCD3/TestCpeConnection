@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.8039" />
+    <PackageReference Include="Xamarin.Essentials" Version="1.7.1" />
+    <PackageReference Include="Flurl.Http" Version="3.2.2" />
+    <PackageReference Include="Kosvo.Plugin.FileUploader" Version="1.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="NetworkinService\" />
+    <None Remove="Assets\" />
+    <None Remove="Assets\file.txt" />
+    <None Remove="Flurl" />
+    <None Remove="Flurl.Http" />
+    <None Remove="Kosvo.Plugin.FileUploader" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NetworkinService\" />
+    <Folder Include="Assets\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\file.txt" />
+  </ItemGroup>
+</Project>
