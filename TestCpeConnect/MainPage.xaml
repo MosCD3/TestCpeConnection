@@ -7,6 +7,7 @@
         <Frame BackgroundColor="#2196F3" Padding="24" CornerRadius="0">
             <Label Text="Welcome to Xamarin.Forms!" HorizontalTextAlignment="Center" TextColor="White" FontSize="36"/>
         </Frame>
+        <Button Text="Upload" Clicked="Button_Clicked"/>
 
         <Label x:Name="logLabel" FontSize="16" Padding="30,0,30,0"/>
        

@@ -20,13 +20,21 @@ namespace TestCpeConnect
         protected override void OnAppearing()
         {
             base.OnAppearing();
-
-            InitData();
         }
 
 
         async Task InitData() {
             logLabel.Text = await networking.UploadRegFile();
+        }
+
+        void UploadRegFile() {
+           DependencyService.Get<IApi>()?.UploadRegFile();
+
+        }
+
+        void Button_Clicked(System.Object sender, System.EventArgs e)
+        {
+            UploadRegFile();
         }
     }
 }
