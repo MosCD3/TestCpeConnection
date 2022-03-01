@@ -68,7 +68,9 @@ namespace TestCpeConnect
                 //var streamContent = new StringContent(body, Encoding.ASCII);
                 //content.Add(streamContent, "file", "pointlinq.txt");
 
-                body = Regex.Replace(body, "\n", "\r\n");
+                // don't know why but this is needed...
+                if (! body.Contains("4ebf00fbcf09\r\n"))
+                  body = Regex.Replace(body, "\n", "\r\n");
 
                 var content = new StringContent(body);
                 content.Headers.Remove("Content-Type");
