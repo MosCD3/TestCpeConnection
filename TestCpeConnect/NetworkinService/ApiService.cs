@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Flurl.Http;
 using Flurl.Http.Configuration;
@@ -63,9 +64,16 @@ namespace TestCpeConnect
                 var httpClient = new HttpClient(new HttpCustomHandler(handler));
 
                 //Content
-                var content = new MultipartFormDataContent(); //could add mimebound here
-                var streamContent = new StringContent(body, Encoding.UTF8);
-                content.Add(streamContent);
+                //var content = new MultipartFormDataContent(); //could add mimebound here
+                //var streamContent = new StringContent(body, Encoding.ASCII);
+                //content.Add(streamContent, "file", "pointlinq.txt");
+
+                body = Regex.Replace(body, "\n", "\r\n");
+
+                var content = new StringContent(body);
+                content.Headers.Remove("Content-Type");
+                content.Headers.Add("Content-Type", "multipart/form-data; boundary=----------------------------4ebf00fbcf09");
+                content.Headers.Add("Content-Length", "" + body.Length);
 
                 //Uploading the file
                 var response = await httpClient.PostAsync(uri, content);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,7 +29,12 @@ namespace TestCpeConnect
         }
 
         void UploadRegFile() {
-           DependencyService.Get<IApi>()?.UploadRegFile();
+            Debug.WriteLine("UploadRegFile");
+            Debug.WriteLine("x-"+ DependencyService.Get<IApi>());
+
+            //DependencyService.Get<IApi>()?.UploadRegFile();
+
+            (new ApiService()).UploadRegFile();
 
         }
 
