@@ -32,5 +32,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Assets\file.txt" />
     <EmbeddedResource Include="Assets\gio_cert.p12" />
+    <EmbeddedResource Include="Assets\filem.txt" />
   </ItemGroup>
 </Project>
