@@ -24,10 +24,14 @@
     <None Remove="Flurl.Http" />
     <None Remove="Kosvo.Plugin.FileUploader" />
     <None Remove="Assets\gio_cert.p12" />
+    <None Remove="Models\" />
+    <None Remove="Dependancy\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NetworkinService\" />
     <Folder Include="Assets\" />
+    <Folder Include="Models\" />
+    <Folder Include="Dependancy\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\file.txt" />
