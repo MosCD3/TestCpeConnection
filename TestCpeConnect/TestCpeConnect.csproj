@@ -23,6 +23,7 @@
     <None Remove="Flurl" />
     <None Remove="Flurl.Http" />
     <None Remove="Kosvo.Plugin.FileUploader" />
+    <None Remove="Assets\gio_cert.p12" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NetworkinService\" />
@@ -30,6 +31,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\file.txt" />
+    <EmbeddedResource Include="Assets\gio_cert.p12" />
     <EmbeddedResource Include="Assets\filem.txt" />
   </ItemGroup>
 </Project>
