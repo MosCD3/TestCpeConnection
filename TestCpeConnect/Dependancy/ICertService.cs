@@ -6,6 +6,6 @@ namespace TestCpeConnect
 {
     public interface ICertService
     {
-        string SignRegFile(string regFile, Stream certStream, string password);
+        string SignRegFile(string regFile, Stream certStream, string password, string userId, string sasServerInfo);
     }
 }

@@ -15,6 +15,7 @@
     <PackageReference Include="Xamarin.Essentials" Version="1.7.1" />
     <PackageReference Include="Flurl.Http" Version="3.2.2" />
     <PackageReference Include="Kosvo.Plugin.FileUploader" Version="1.5.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="NetworkinService\" />
@@ -26,6 +27,7 @@
     <None Remove="Assets\gio_cert.p12" />
     <None Remove="Models\" />
     <None Remove="Dependancy\" />
+    <None Remove="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NetworkinService\" />

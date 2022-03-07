@@ -15,13 +15,7 @@ namespace TestCpeConnect.Droid
     public class CertService_Android : ICertService
     {
 
-        public string base64Enc(string s)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(s);
-            return Convert.ToBase64String(bytes)
-                .Replace("\n$", "")
-                .Replace("\n", "");
-        }
+        
 
         public static byte[] sign(string s, IPrivateKey key)
         {
@@ -46,13 +40,12 @@ namespace TestCpeConnect.Droid
         {
         }
 
-        public string SignRegFile(string regFile, Stream certStream, string password)
+        public string SignRegFile(string regFile, Stream certStream, string password, string userId, string sasServerInfo)
         {
             //Use for debugging
+            //string fake_digital_signature = "PuSCxeMCbIHurTBqkZ6D7B1ITvuFIlsRUNKjASRkoi6-fUfi4FKbvlaqM8Ddlr7j7saLY6GwN0SfplUEwuawcF-UBoD8dsdHDwrkwicheGK4ub7XwWyiIfi-KrSQ8fftxsa7HYKNXvvOFVEijfkHYm_JnmCIPO_dVJLqVH2-4R3QSSCG25HO4-BHdhoZN_SLPbsj3jxHZsaznBf6IXBbBK7YWhbIP_vb1AOpjIwHp9x4hJZw_xGDuHBp-m0i8sWjTWCCiYn5FxGPbAz_2ZXRznv9d07QYwjRkfUXAOcC6vJjKOMmBPs_8yxf4astql2POTvhHAMNWGlk287lMfbWpg==";
             string fake_digital_signature = "PuSCxeMCbIHurTBqkZ6D7B1ITvuFIlsRUNKjASRkoi6-fUfi4FKbvlaqM8Ddlr7j7saLY6GwN0SfplUEwuawcF-UBoD8dsdHDwrkwicheGK4ub7XwWyiIfi-KrSQ8fftxsa7HYKNXvvOFVEijfkHYm_JnmCIPO_dVJLqVH2-4R3QSSCG25HO4-BHdhoZN_SLPbsj3jxHZsaznBf6IXBbBK7YWhbIP_vb1AOpjIwHp9x4hJZw_xGDuHBp-m0i8sWjTWCCiYn5FxGPbAz_2ZXRznv9d07QYwjRkfUXAOcC6vJjKOMmBPs_8yxf4astql2POTvhHAMNWGlk287lMfbWpg==";
 
-            string userId = "dwiaX5";
-            string sasServerInfo = "https://developer-sc-02.federatedwireless.com/v1.2";
             //Load keypair from cert
             KeyPair keyPair = LoadCert(certStream, password);
             if (keyPair == null)
@@ -61,10 +54,7 @@ namespace TestCpeConnect.Droid
                 return null;
             }
 
-            string protected_header = "{"
-                    + "\"typ\":\"JWT\","
-                    + "\"alg\":\"RS256\""
-                    + "}";
+            string protected_header = ApiService.protected_header;
             try
             {
                 //TODO: Impliment "EC" in rest of the code
@@ -73,8 +63,8 @@ namespace TestCpeConnect.Droid
                     protected_header = protected_header.Replace("RS256", "ES256");
                 }
 
-                string b64_protected_header = base64Enc(protected_header);
-                string b64_cpi_signed_data = base64Enc(regFile);
+                string b64_protected_header = ApiService.base64Enc(protected_header);
+                string b64_cpi_signed_data = ApiService.base64Enc(regFile);
 
 
                 //#digitalSignature
@@ -91,38 +81,14 @@ namespace TestCpeConnect.Droid
                 //Parsing public key
                 string b64publicKeyString = Base64.GetEncoder().EncodeToString(keyPair.Public.GetEncoded());
 
-
-                string publicKeyString = "";
-                for (int i = 0; i <= b64publicKeyString.Length / 64; i++)
-                {
-                    var beginIndex = 64 * i;
-                    var endIndex = 64 * i + Math.Min(64, b64publicKeyString.Length - 64 * i);
-                    var subs = b64publicKeyString.Substring(beginIndex, endIndex - beginIndex);
-
-                    publicKeyString = publicKeyString + subs + "\\n";
-                }
-
-                string cpi_public_key = publicKeyString;
-                if (!publicKeyString.Contains("PUBLIC KEY"))
-                {
-                    cpi_public_key =
-                        "-----BEGIN PUBLIC KEY-----\\n" +
-                        publicKeyString +
-                        "-----END PUBLIC KEY-----\\n";
-                    //      cpi_public_key = cpi_public_key.replaceAll("\n", "\\" + "n");
-                }
-
-
-                string cpe_input_data = "{"
-                    + "\"userId\": \"" + userId + "\", "
-                    + "\"sasUrl\": \"" + sasServerInfo + "\", "
-                    + "\"cpiSignatureData\": { "
-                    + "\"protectedHeader\": \"" + b64_protected_header + "\", "
-                    + "\"encodedCpiSignedData\": \"" + b64_cpi_signed_data + "\", "
-                    + "\"digitalSignature\": \"" + b64u_digital_signature + "\""
-                    + "}, "
-                    + $"\"cpiPublicKey\": \"{cpi_public_key}\""
-                    + "}";
+                string cpi_public_key = ApiService.FormatPublicKey(b64publicKeyString);
+                string cpe_input_data = ApiService.FormatPostBody(
+                                 userId: userId,
+                                 sasServerInfo: sasServerInfo,
+                                 b64_protected_header: b64_protected_header,
+                                 b64_cpi_signed_data: b64_cpi_signed_data,
+                                 b64u_digital_signature: b64u_digital_signature,
+                                 cpi_public_key: cpi_public_key);
 
                 Debug.WriteLine("Signed File:", cpe_input_data);
                 return cpe_input_data;
