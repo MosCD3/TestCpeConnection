@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Plugin.FileUploader;
 using Plugin.FileUploader.Abstractions;
 using TestCpeConnect.Models;
+using TestCpeConnect.NetworkinService;
 using Xamarin.Forms;
 
 namespace TestCpeConnect
@@ -34,7 +35,9 @@ namespace TestCpeConnect
     public class ApiService
     {
         public string DemoCertFile = "gio_cert.p12";//Embeded
+        public string DemoCertFilePem = "dan_cert.pem";//Embeded
         public string DemoCertPass = "kHqnjs17VfCKjGBTBX1pPN";
+        public string DemoCertPassPem = "ZU7MykJFJ7EayurqK7W2yh";
         public string CPE_BASEURL_LAB = "https://192.168.37.1:15012"; // Razi's in lab
         public string CPE_Endpoint_UploadCbrs = "/cgi-bin/cbrs_upload.cgi";
         public string SampleRegFile = "{\"cbsdSerialNumber\":\"80029C397978\",\"fccId\":\"ROR1001\",\"installationParam\":{\"antennaAzimuth\":208,\"antennaBeamwidth\":23,\"antennaDowntilt\":0,\"antennaGain\":16,\"antennaModel\":\"Internal\",\"eirpCapability\":38,\"height\":4.571776897287412,\"heightType\":\"AGL\",\"horizontalAccuracy\":5,\"indoorDeployment\":false,\"latitude\":37.421998333333335,\"longitude\":-122.084,\"verticalAccuracy\":1},\"professionalInstallerData\":{\"cpiId\":\"e240c1b5-9588-40d6-89a6-ec30c0282919\",\"cpiName\":\"Gio\",\"installCertificationTime\":\"2022-02-28T22:24:06.809-05:00\"}}";
@@ -97,7 +100,7 @@ namespace TestCpeConnect
 
                 }
 
-                signedFile = await SignRegFileShared2(
+                signedFile = SignRegFileShared(
                     regFile: SampleRegFile,
                     certData: certObject.Data,
                     password: certObject.Password,
@@ -176,6 +179,13 @@ namespace TestCpeConnect
 
         }
 
+
+        /// <summary>
+        /// This will call node server to parse a p12 RSA cert and return signed data
+        /// </summary>
+        /// <param name="base64Cert"></param>
+        /// <param name="toSign"></param>
+        /// <returns></returns>
         public async Task<ServerSignResponse> ParseCertificate_HttpClient(string base64Cert, string toSign)
         {
             Debug.WriteLine("Upload reg file");
@@ -258,6 +268,7 @@ namespace TestCpeConnect
                         ID = "cpicert",
                         Password = password,
                         FileName = fileName,
+                        FilePath = resName,
                         FileStream = assembly.GetManifestResourceStream(resName)
                     };
                 }
@@ -276,6 +287,7 @@ namespace TestCpeConnect
                     ID = "cpicert",
                     Password = password,
                     Data = buffer,
+                    FilePath = resName,
                     FileName = fileName
                 };
 
@@ -310,11 +322,20 @@ namespace TestCpeConnect
                     Debug.WriteLine("Certficate cannot be created with given password!");
                     return returnedSignedFile;
                 }
-                var publicKeyData = x509.GetPublicKey();
+
+                //Apparently this is not working
+                //var publicKeyData = x509.GetPublicKey();
                 var privateKey = x509.PrivateKey;
                 var algorithm = privateKey.KeyExchangeAlgorithm;
+                RSACryptoServiceProvider rSA = privateKey as RSACryptoServiceProvider;
+                if (rSA == null)
+                {
+                    Debug.WriteLine("Error[343] Rsa cast failed");
+                    return returnedSignedFile;
+                }
+                var pubKeyBase64 = CertUtils.ExportPublicKey(rSA);
 
-                
+
 
                 //Prepare header
                 if (algorithm.StartsWith("EC"))
@@ -328,9 +349,8 @@ namespace TestCpeConnect
 
                 byte[] buffer = Encoding.Default.GetBytes(data);
 
-                //RSA rsa = x509.GetRSAPrivateKey();
+              
                 //byte[] signatureData = rsa.SignData(buffer, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-                RSACryptoServiceProvider rSA = privateKey as RSACryptoServiceProvider;
                 //byte[] privateKeyData = x509.PrivateKey.
                 byte[] signatureData = (privateKey as RSACryptoServiceProvider).SignData(buffer, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
 
@@ -338,16 +358,15 @@ namespace TestCpeConnect
                 string digital_signature = Convert.ToBase64String(signatureData);
                 string b64u_digital_signature = digital_signature.Replace("\n", "");
 
-                //Public key
-                string b64publicKeyString = Convert.ToBase64String(publicKeyData);
 
-                Debug.WriteLine("Public key:");
-                Debug.WriteLine(b64publicKeyString);
+                Debug.WriteLine("Certificate:");
+                Debug.WriteLine(x509.ToString(true));
 
-                Debug.WriteLine("Private key:");
-                Debug.WriteLine(b64publicKeyString);
+            
 
-                string cpi_public_key = ApiService.FormatPublicKey(b64publicKeyString);
+               
+
+                string cpi_public_key = ApiService.FormatPublicKey(pubKeyBase64);
                 string cpe_input_data = ApiService.FormatPostBody(
                                  userId: userId,
                                  sasServerInfo: sasServerInfo,
@@ -365,7 +384,17 @@ namespace TestCpeConnect
 
         }
 
-        private async Task<string> SignRegFileShared2(string regFile, byte[] certData, string password, string userId, string sasServerInfo)
+
+        /// <summary>
+        /// Sign data using node server (requires internet connection)
+        /// </summary>
+        /// <param name="regFile"></param>
+        /// <param name="certData"></param>
+        /// <param name="password"></param>
+        /// <param name="userId"></param>
+        /// <param name="sasServerInfo"></param>
+        /// <returns></returns>
+        private async Task<string> SignRegFileSharedNodeServer(string regFile, byte[] certData, string password, string userId, string sasServerInfo)
         {
             string returnedSignedFile = null;
             string protected_header = ApiService.protected_header;
@@ -408,10 +437,11 @@ namespace TestCpeConnect
         }
 
 
-
+        #region Helpers
         //Helpers
         public static string FormatPublicKey(string publicKeyB64) {
-
+            //string fakeInput = "MIIBCgKCAQEAvLPdUGCJVxF0Zt8jLGPUPeikrs0qjOzP2K1/8HEGw+LIyauRaoRT/6aFML6aJtN5elL1oMLsSB82MGZs1xLl2mzIS4+lvE2NBNl7FS+bpXGAMZZmTHdW/4DxXGT0MVUE9Jod8ajwzUNByMy5kVLcobuYPvFMhYJzmRD8sBGGQ8p7xSB4k4Aq28JTsCmScCxZbwm07iiX2oYDZeJNGCqZYyG0ildov6Vz6apm4FgTA2HH/+CO3pcsSj9ytwVprYd3nkNIsW6u/mqyY+j56GG1zT+p8kiIQ9cDlQRXSMRWN4102CpFHPPXrEXRnp1TO2BzBHUSxNhO5j+SO/7ZGrIXsQIDAQAB";
+            //publicKeyB64 = fakeInput;
             string cpi_public_key = "";
             string publicKeyString = "";
 
@@ -464,6 +494,8 @@ namespace TestCpeConnect
                 .Replace("\n$", "")
                 .Replace("\n", "");
         }
+
+        #endregion
 
     }
 }

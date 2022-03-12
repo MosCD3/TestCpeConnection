@@ -28,6 +28,7 @@
     <None Remove="Models\" />
     <None Remove="Dependancy\" />
     <None Remove="Newtonsoft.Json" />
+    <None Remove="Assets\dan_cert.pem" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NetworkinService\" />
@@ -39,5 +40,6 @@
     <EmbeddedResource Include="Assets\file.txt" />
     <EmbeddedResource Include="Assets\gio_cert.p12" />
     <EmbeddedResource Include="Assets\filem.txt" />
+    <EmbeddedResource Include="Assets\dan_cert.pem" />
   </ItemGroup>
 </Project>

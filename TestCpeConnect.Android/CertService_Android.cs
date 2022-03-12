@@ -44,7 +44,7 @@ namespace TestCpeConnect.Droid
         {
             //Use for debugging
             //string fake_digital_signature = "PuSCxeMCbIHurTBqkZ6D7B1ITvuFIlsRUNKjASRkoi6-fUfi4FKbvlaqM8Ddlr7j7saLY6GwN0SfplUEwuawcF-UBoD8dsdHDwrkwicheGK4ub7XwWyiIfi-KrSQ8fftxsa7HYKNXvvOFVEijfkHYm_JnmCIPO_dVJLqVH2-4R3QSSCG25HO4-BHdhoZN_SLPbsj3jxHZsaznBf6IXBbBK7YWhbIP_vb1AOpjIwHp9x4hJZw_xGDuHBp-m0i8sWjTWCCiYn5FxGPbAz_2ZXRznv9d07QYwjRkfUXAOcC6vJjKOMmBPs_8yxf4astql2POTvhHAMNWGlk287lMfbWpg==";
-            string fake_digital_signature = "PuSCxeMCbIHurTBqkZ6D7B1ITvuFIlsRUNKjASRkoi6-fUfi4FKbvlaqM8Ddlr7j7saLY6GwN0SfplUEwuawcF-UBoD8dsdHDwrkwicheGK4ub7XwWyiIfi-KrSQ8fftxsa7HYKNXvvOFVEijfkHYm_JnmCIPO_dVJLqVH2-4R3QSSCG25HO4-BHdhoZN_SLPbsj3jxHZsaznBf6IXBbBK7YWhbIP_vb1AOpjIwHp9x4hJZw_xGDuHBp-m0i8sWjTWCCiYn5FxGPbAz_2ZXRznv9d07QYwjRkfUXAOcC6vJjKOMmBPs_8yxf4astql2POTvhHAMNWGlk287lMfbWpg==";
+            //string fake_digital_signature = "PuSCxeMCbIHurTBqkZ6D7B1ITvuFIlsRUNKjASRkoi6-fUfi4FKbvlaqM8Ddlr7j7saLY6GwN0SfplUEwuawcF-UBoD8dsdHDwrkwicheGK4ub7XwWyiIfi-KrSQ8fftxsa7HYKNXvvOFVEijfkHYm_JnmCIPO_dVJLqVH2-4R3QSSCG25HO4-BHdhoZN_SLPbsj3jxHZsaznBf6IXBbBK7YWhbIP_vb1AOpjIwHp9x4hJZw_xGDuHBp-m0i8sWjTWCCiYn5FxGPbAz_2ZXRznv9d07QYwjRkfUXAOcC6vJjKOMmBPs_8yxf4astql2POTvhHAMNWGlk287lMfbWpg==";
 
             //Load keypair from cert
             KeyPair keyPair = LoadCert(certStream, password);
@@ -53,6 +53,8 @@ namespace TestCpeConnect.Droid
                 Debug.WriteLine("Error[20] Cannot load cert");
                 return null;
             }
+
+
 
             string protected_header = ApiService.protected_header;
             try
@@ -80,6 +82,13 @@ namespace TestCpeConnect.Droid
 
                 //Parsing public key
                 string b64publicKeyString = Base64.GetEncoder().EncodeToString(keyPair.Public.GetEncoded());
+                string b64privateKeyString = Base64.GetEncoder().EncodeToString(keyPair.Private.GetEncoded());
+
+                Debug.WriteLine("Public key:");
+                Debug.WriteLine(b64publicKeyString);
+
+                Debug.WriteLine("Private key:");
+                Debug.WriteLine(b64privateKeyString);
 
                 string cpi_public_key = ApiService.FormatPublicKey(b64publicKeyString);
                 string cpe_input_data = ApiService.FormatPostBody(
@@ -102,7 +111,7 @@ namespace TestCpeConnect.Droid
         }
 
 
-        public KeyPair LoadCert(Stream certStream, string password)
+        private KeyPair LoadCert(Stream certStream, string password)
         {
             Debug.WriteLine("Android> Init cert from data ..");
             try
@@ -157,5 +166,28 @@ namespace TestCpeConnect.Droid
 
 
         }
+
+        //private KeyPair LoadCertPem(Stream certStream, string password)
+        //{
+        //    Debug.WriteLine("Android> Init cert from data ..");
+        //    try
+        //    {
+                
+
+
+        //        return new KeyPair(pubKey, privateKey);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Debug.WriteLine($"Exception[60] Droid load cert error:{e}");
+        //        return null;
+
+        //    }
+
+
+
+        //}
+
+
     }
 }
